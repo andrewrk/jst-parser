@@ -272,12 +272,12 @@ var Jst = {
     },
 
   evaluate:
-    function evaluate(src, dest, args){
+    function evaluate(src, args){
       with(args){
         Jst.html = "";
-        var script = Jst.parse(document.getElementById(src).value);
+        var script = Jst.parse(src);
         eval(script);
-        document.getElementById(dest).innerHTML = Jst.html;
+        return Jst.html;
       }
     },
     

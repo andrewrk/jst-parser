@@ -47,10 +47,21 @@ http://blog.markturansky.com/BetterJavascriptTemplates.html#example
 
  * Example usage
 
-    // src == your template element ID (template must be stored in a textarea)
-    // dest == the element where the rendered HTML goes
-    // data = any data your template will need when rendering
-    // Jst.evaluate(src, dest, data);
+    // src: string containing template code
+    // data: dictionary with values your template needs
+    // return value: the processed template
+    // Jst.evaluate(template, data);
 
-    Jst.evaluate("template", "rendered", {"name":"flintstone"});
+    var template = '<h1>hi</h1><p>foo is <%=foo%></p>';
+    document.getElementById("output").innerHTML =
+        Jst.evaluate(template, {"foo":"yarrr"});
 
+ * How to minify
+
+    1. Run the code through http://www.jslint.com/ and clean up.
+    2. Download JSMin from http://www.crockford.com/javascript/jsmin.html.
+    3. Download the .c file and compile for your platform. On linux:
+       wget http://www.crockford.com/javascript/jsmin.c
+       gcc -o jsmin jsmin.c
+    4. It takes standard input and writes to standard output. So on linux:
+       ./jsmin <jstparser.js >jstparser_min.js
