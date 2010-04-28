@@ -280,6 +280,22 @@ var Jst = {
         return Jst.html;
       }
     },
+
+  compile:
+    // pre-compile a template for quicker rendering. save the return value and 
+    // pass it to evaluateCompiled
+    function compile(src){
+      return Jst.parse(src);
+    },
+  
+  evaluateCompiled: // evaluate a pre-compiled script
+    function evaluateCompiled(script, args){
+      with(args){
+        Jst.html = "";
+        eval(script);
+        return Jst.html;
+      }
+    },
     
   // all write and writeln functions eval'd by Jst
   // concatenate to this internal variable

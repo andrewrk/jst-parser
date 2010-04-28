@@ -71,6 +71,12 @@
     document.getElementById("output").innerHTML =
         Jst.evaluate(template, {"foo":"yarrr"});
 
+    // you can also pre-compile templates to save cpu
+    var precompiled = Jst.compile(template);
+    // then later
+    document.getElementById("output").innerHTML =
+        Jst.evaluateCompiled(precompiled, {"foo":"yarrr"});
+
  * How to minify
 
     1. Run the code through http://www.jslint.com/ and clean up.
