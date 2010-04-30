@@ -62,20 +62,31 @@
 
  * Example usage
 
-    // src: string containing template code
-    // data: dictionary with values your template needs
-    // return value: the processed template
-    // Jst.evaluate(template, data);
-
     var template = '<h1>hi</h1><p>foo is <%=foo%></p>';
     document.getElementById("output").innerHTML =
-        Jst.evaluate(template, {"foo":"yarrr"});
+        Jst.evaluateSingleShot(template, {"foo":"yarrr"});
 
     // you can also pre-compile templates to save cpu
     var precompiled = Jst.compile(template);
     // then later
     document.getElementById("output").innerHTML =
-        Jst.evaluateCompiled(precompiled, {"foo":"yarrr"});
+        Jst.evaluate(precompiled, {"foo":"yarrr"});
+    
+    // you can use normal javascript in templates. any function that
+    // is defined is available for you to use.
+    <p>this is some template I'm making</p>
+    <% if (user.logged_in) { %>
+        <p>you are logged in.</p>
+    <% } else { %>
+        <p>not logged in.</p>
+    <% } %>
+
+    // Jst automatically escapes any html to protect you from h4xz0rz.
+    // if you actually want to put html through a variable, temporarily
+    // disable autoescape:
+    <% Jst.autoescape = false; %>
+    <%= html_code %>
+    <% Jst.autoescape = true; %>
 
  * How to minify
 
