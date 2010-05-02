@@ -25,59 +25,86 @@ THE SOFTWARE.
 (This is the license from www.json.org and I think it's awesome)
 */
 
-function CharacterStack(str){
-    this.characters = [];
-    this.peek = function peek(){ return this.characters[this.characters.length - 1]; };
-    this.pop = function pop() { return this.characters.pop();};
-    this.push = function push(c){ this.characters.push(c);};
-    this.hasMore =  function hasMore() { if(this.characters.length > 0) { return true; } else { return false; } };
-
-    for(var i = str.length; i >= 0; i = i - 1){
-        this.characters.push(str.charAt(i));
-    }
-}
-
-function StringWriter(){
-    this.str = "";
-    this.write = function write(s) { this.str += s; };
-    this.toString = function toString(){ return this.str; };
-}
-
-String.prototype.endsWith = function endsWith(c){
-    if(this.charAt(this.length - 1) == c){
+String.prototype.endsWith = function endsWith(c) {
+    if (this.charAt(this.length - 1) == c) {
         return true;
     } else {
         return false;
     }
 };
 
-String.prototype.startsWith = function startsWith(c){
-    if(this.charAt(0) == c){
+String.prototype.startsWith = function startsWith(c) {
+    if (this.charAt(0) == c) {
         return true;
     } else {
         return false;
     }
 };
 
-String.prototype.replaceAll = function replaceAll(a, b){
+String.prototype.replaceAll = function replaceAll(a, b) {
     var s = this;
-    while(s.indexOf(a) > -1){
+    while (s.indexOf(a) > -1) {
         s = s.replace(a, b);
     }
     return s;
 };
 
-var Jst = {
-parseScriptlet: 
-    function parseScriptlet(stack){
+var Jst = function () {
+    // private variables:
+    var that; // reference to the public object
+    
+    // all write and writeln functions eval'd by Jst
+    // concatenate to this internal variable
+    var html = "";
+
+    // private functions
+    function CharacterStack(str) {
+        var i;
+
+        this.characters = [];
+        this.peek = function peek() {
+            return this.characters[this.characters.length - 1];
+        };
+        this.pop = function pop() {
+            return this.characters.pop();
+        };
+        this.push = function push(c) {
+            this.characters.push(c);
+        };
+        this.hasMore =  function hasMore() {
+            if (this.characters.length > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        for (i = str.length; i >= 0; i -= 1) {
+            this.characters.push(str.charAt(i));
+        }
+    }
+
+    function StringWriter() {
+        this.str = "";
+        this.write = function write(s) {
+            this.str += s;
+        };
+        this.toString = function toString() {
+            return this.str;
+        };
+    }
+
+    function parseScriptlet(stack) {
         var fragment = new StringWriter();
-        while(stack.hasMore()){
-            if(stack.peek() == '%'){ //possible end delimiter
-                var c = stack.pop();
-                if(stack.peek() == '>'){ //end delimiter
+        var c; // character
+
+        while (stack.hasMore()) {
+            if (stack.peek() == '%') { //possible end delimiter
+                c = stack.pop();
+                if (stack.peek() == '>') { //end delimiter
                     // pop > so that it is not available to main parse loop
                     stack.pop();
-                    if(stack.peek() == '\n'){
+                    if (stack.peek() == '\n') {
                         fragment.write(stack.pop());
                     }
                     break;
@@ -89,104 +116,107 @@ parseScriptlet:
             }
         }
         return fragment.toString();
-    },
+    }
 
-isOpeningDelimiter:
-    function isOpeningDelimiter(c){
-        if(c == "<" || c == "%lt;"){
+    function isOpeningDelimiter(c) {
+        if (c == "<" || c == "%lt;") {
             return true;
         } else {
             return false;
         }
-    },
+    }
 
-isClosingDelimiter:
-    function isClosingDelimiter(c){
-        if(c == ">" || c == "%gt;"){
+    function isClosingDelimiter(c) {
+        if (c == ">" || c == "%gt;") {
             return true;
         } else {
             return false;
         }
-    },
+    }
 
-appendExpressionFragment:
-    function appendExpressionFragment(writer, fragment){
+    function appendExpressionFragment(writer, fragment, jstWriter) {
+        var i,j;
+        var c;
+
         // check to be sure quotes are on both ends of a string literal
-        if(fragment.startsWith("\"") && !fragment.endsWith("\"")){
+        if (fragment.startsWith("\"") && !fragment.endsWith("\"")) {
             //some scriptlets end with \n, especially if the script ends the file
-            if(fragment.endsWith("\n") && fragment.charAt(fragment.length - 2) == '"'){
+            if (fragment.endsWith("\n") && fragment.charAt(fragment.length - 2) == '"') {
                 //we're ok...
             } else {
                 throw { "message":"'" + fragment + "' is not properly quoted"};
             }
         }
 
-        if(!fragment.startsWith("\"") && fragment.endsWith("\"")){
+        if (!fragment.startsWith("\"") && fragment.endsWith("\"")) {
             throw { "message":"'" + fragment + "' is not properly quoted"};
         }
 
         // print or println?
-        if(fragment.endsWith("\n")){
-            writer.write("Jst.safeWriteln(");
+        if (fragment.endsWith("\n")) {
+            writer.write(jstWriter + "ln(");
             //strip the newline
             fragment = fragment.substring(0, fragment.length - 1);
         } else {
-            writer.write("Jst.safeWrite(");
+            writer.write(jstWriter + "(");
         }
 
-        if(fragment.startsWith("\"") && fragment.endsWith("\"")){
+        if (fragment.startsWith("\"") && fragment.endsWith("\"")) {
             //strip the quotes
             fragment = fragment.substring(1, fragment.length - 1);
             writer.write("\"");
-            for(var i = 0; i < fragment.length; i = i + 1){
-                var c = fragment.charAt(i);
-                if(c == '"'){
+            for (i = 0; i < fragment.length; i += 1) {
+                c = fragment.charAt(i);
+                if (c == '"') {
                     writer.write("\\");
                     writer.write(c);
                 }
             }
             writer.write("\"");
         } else {
-            for(var j = 0; j < fragment.length; j = j + 1){
+            for (j = 0; j < fragment.length; j += 1) {
                 writer.write(fragment.charAt(j));
             }
         }
 
         writer.write(");");
-    },
+    }
 
-appendTextFragment:
-    function appendTextFragment(writer, fragment){
-        if(fragment.endsWith("\n")){
-            writer.write("Jst.writeln(\"");
+    function appendTextFragment(writer, fragment) {
+        var i;
+        var c;
+
+        if (fragment.endsWith("\n")) {
+            writer.write("writeln(\"");
         } else {
-            writer.write("Jst.write(\"");
+            writer.write("write(\"");
         }
 
-        for(var i = 0; i < fragment.length; ++i){
-            var c = fragment.charAt(i);
-            if(c == '"'){
+        for (i = 0; i < fragment.length; i += 1) {
+            c = fragment.charAt(i);
+            if (c == '"') {
                 writer.write("\\");
             }
             // we took care of the line break with print vs. println
-            if(c != '\n' && c != '\r'){
+            if (c != '\n' && c != '\r') {
                 writer.write(c);
             }
         }
 
         writer.write("\");");
-    },
+    }
 
-parseExpression:
-    function parseExpression(stack){
+    function parseExpression(stack) {
         var fragment = new StringWriter();
-        while(stack.hasMore()){
-            if(stack.peek() == '%'){ //possible end delimiter
-                var c = stack.pop();
-                if(Jst.isClosingDelimiter(stack.peek())){ //end delimiter
+        var c;
+
+        while (stack.hasMore()) {
+            if (stack.peek() == '%') { //possible end delimiter
+                c = stack.pop();
+                if (isClosingDelimiter(stack.peek())) { //end delimiter
                     //pop > so that it is not available to main parse loop
                     stack.pop();
-                    if(stack.peek() == '\n'){
+                    if (stack.peek() == '\n') {
                         fragment.write(stack.pop());
                     }
                     break;
@@ -199,15 +229,16 @@ parseExpression:
         }
 
         return fragment.toString();
-    },
+    }
 
-parseText:
-    function parseText(stack){
+    function parseText(stack) {
         var fragment = new StringWriter();
-        while(stack.hasMore()){
-            if(Jst.isOpeningDelimiter(stack.peek())){ //possible delimiter
-                var c = stack.pop();
-                if(stack.peek() == '%'){ // delimiter!
+        var c,d;
+
+        while (stack.hasMore()) {
+            if (isOpeningDelimiter(stack.peek())) { //possible delimiter
+                c = stack.pop();
+                if (stack.peek() == '%') { // delimiter!
                     // push c onto the stack to be used in main parse loop
                     stack.push(c);
                     break;
@@ -215,97 +246,94 @@ parseText:
                     fragment.write(c);
                 }
             } else {
-                var d = stack.pop();
+                d = stack.pop();
                 fragment.write(d);
-                if(d == '\n'){ //done with this fragment.  println it.
+                if (d == '\n') { //done with this fragment.  println it.
                     break;
                 }
             }
         }
         return fragment.toString();
-    },
+    }
 
-    // pre-compile a template for quicker rendering. save the return value and 
-    // pass it to evaluate.
-compile:
-    function compile(src){
-        var stack = new CharacterStack(src);
-        var writer = new StringWriter();
+    function safeWrite(s) {
+        s = s.toString();
+        s = s.replaceAll('&', '&amp;');
+        s = s.replaceAll('"', '&quot;');
+        s = s.replaceAll('<', '&lt;');
+        s = s.replaceAll('>', '&gt;');
+        html += s;
+    }
 
-        var c;
-        var fragment;
-        while(stack.hasMore()){
-            if(Jst.isOpeningDelimiter(stack.peek())){ //possible delimiter
-                c = stack.pop();
-                if(stack.peek() == '%'){ //delimiter!
-                    c = stack.pop();
-                    if(stack.peek() == "="){
-                        stack.pop();
-                        fragment = Jst.parseExpression(stack);
-                        Jst.appendExpressionFragment(writer, fragment);               
-                    } else {
-                        fragment = Jst.parseScriptlet(stack);
-                        writer.write(fragment);
-                    }
-                } else {  //not a delimiter
-                    stack.push(c);
-                    fragment = Jst.parseText(stack);
-                    Jst.appendTextFragment(writer, fragment);
-                }
-            } else {
-                fragment = Jst.parseText(stack);
-                Jst.appendTextFragment(writer, fragment);
-            }
-        }
-        return writer.toString();
-    },
-
-safeWrite:
-    function safeWrite(s){
-        if (Jst.autoescape) {
-            s = s.toString();
-            s = s.replaceAll('&', '&amp;');
-            s = s.replaceAll('"', '&quot;');
-            s = s.replaceAll('<', '&lt;');
-            s = s.replaceAll('>', '&gt;');
-        }
-        Jst.html += s;
-    },
-
-safeWriteln:
     function safeWriteln(s) {
-        Jst.safeWrite(s + "\n");
-    },
+        safeWrite(s + "\n");
+    }
 
-write:
-    function write(s){
-        Jst.html += s;
-    },
+    function write(s) {
+        html += s;
+    }
 
-writeln:
-    function writeln(s){
-        Jst.write(s + "\n");
-    },
+    function writeln(s) {
+        write(s + "\n");
+    }
 
-    // if you're lazy, you can use this
-evaluateSingleShot:
-    function evaluateSingleShot(src, args){
-        return Jst.evaluate(Jst.compile(src), args);
-    },
+    that = {
+        // public methods:
+        // pre-compile a template for quicker rendering. save the return value and 
+        // pass it to evaluate.
+        compile: function (src) {
+            var stack = new CharacterStack(src);
+            var writer = new StringWriter();
 
-    // evaluate a pre-compiled script
-evaluate: 
-    function evaluate(script, args){
-        with(args){
-            Jst.html = "";
-            Jst.autoescape = true;
-            eval(script);
-            return Jst.html;
+            var c;
+            var fragment;
+            while (stack.hasMore()) {
+                if (isOpeningDelimiter(stack.peek())) { //possible delimiter
+                    c = stack.pop();
+                    if (stack.peek() == '%') { //delimiter!
+                        c = stack.pop();
+                        if (stack.peek() == "=") {
+                            // expression, escape all html
+                            stack.pop();
+                            fragment = parseExpression(stack);
+                            appendExpressionFragment(writer, fragment,
+                                "safeWrite");
+                        } else if (stack.peek() == "+") {
+                            // expression, don't escape html
+                            stack.pop()
+                            fragment = parseExpression(stack);
+                            appendExpressionFragment(writer, fragment,
+                                "write");
+                        } else {
+                            fragment = parseScriptlet(stack);
+                            writer.write(fragment);
+                        }
+                    } else {  //not a delimiter
+                        stack.push(c);
+                        fragment = parseText(stack);
+                        appendTextFragment(writer, fragment);
+                    }
+                } else {
+                    fragment = parseText(stack);
+                    appendTextFragment(writer, fragment);
+                }
+            }
+            return writer.toString();
+        },
+
+        // evaluate a pre-compiled script. recommended approach
+        evaluate: function (script, args) {
+            with(args) {
+                html = "";
+                eval(script);
+                return html;
+            }
+        },
+
+        // if you're lazy, you can use this
+        evaluateSingleShot: function (src, args) {
+            return this.evaluate(this.compile(src), args);
         }
-    },
-
-    // all write and writeln functions eval'd by Jst
-    // concatenate to this internal variable
-    html:"",
-    autoescape:true
-};
+    };
+    return that;
+}();

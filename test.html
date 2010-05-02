@@ -9,7 +9,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 function render(name) {
     var template = document.getElementById("template").value;
     document.getElementById("rendered").innerHTML =
-        Jst.evaluate(template, {"name":name});
+        Jst.evaluateSingleShot(template, {"name":name});
 }
         </script>
     </head>
@@ -26,7 +26,10 @@ Gold &amp; Hot Rod Red, as seen in the new <a href="http://blog.markturansky.com
         </td>
         </tr>
     <% } %>
-</table></textarea>
+</table>
+Note that name is HTML escaped by default. Here it is without escaping:
+<%+ name %>
+</textarea>
         <h2>Test Drive It</h2>
         <p>Edit the template above, then hit the render button.</p>
         <form name="theform" action="" onsubmit="return false;">

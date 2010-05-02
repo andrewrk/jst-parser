@@ -20,6 +20,9 @@
     out the live working example:
     http://blog.markturansky.com/BetterJavascriptTemplates.html#example
 
+    There is a test.html file included in this source code as well, with
+    updated syntax.
+
  * Why did I write this?
 
     1. TrimPath failed with JSTL errors when running in Jetty with default
@@ -82,11 +85,8 @@
     <% } %>
 
     // Jst automatically escapes any html to protect you from h4xz0rz.
-    // if you actually want to put html through a variable, temporarily
-    // disable autoescape:
-    <% Jst.autoescape = false; %>
-    <%= html_code %>
-    <% Jst.autoescape = true; %>
+    // if you actually want to put html through a variable, use this syntax:
+    <%+ html_code %>
 
  * How to minify
 
@@ -117,3 +117,18 @@
 
     http://mook.wordpress.com/2005/10/30/multi-line-strings-in-javascript/
 
+    Upon investigation, this only works in Firefox currently. However
+    it is simple to make a template filter in Django or a function
+    in PHP to escape a file to make it fit for sticking in a JavaScript
+    string. Here's what my typical Django templates look like:
+
+        {% load jst %}
+
+        var template = "{% filter jst_escape %}{% include 'template.jst.html' %}{% endfilter %}";
+
+        // javascript code
+    
+
+    I have a python script file monitoring when this is saved which passes it
+    through the Django templating system to generate a pre-parsed script, which
+    sits in my media folder and actually gets served.
