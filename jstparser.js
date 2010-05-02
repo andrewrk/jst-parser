@@ -290,7 +290,7 @@ writeln:
     // if you're lazy, you can use this
 evaluateSingleShot:
     function evaluateSingleShot(src, args){
-        return evaluate(Jst.compile(src), args);
+        return Jst.evaluate(Jst.compile(src), args);
     },
 
     // evaluate a pre-compiled script
@@ -307,5 +307,5 @@ evaluate:
     // all write and writeln functions eval'd by Jst
     // concatenate to this internal variable
     html:"",
-    autoescape:true,
+    autoescape:true
 };
