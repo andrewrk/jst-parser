@@ -122,13 +122,11 @@
     in PHP to escape a file to make it fit for sticking in a JavaScript
     string. Here's what my typical Django templates look like:
 
-        {% load jst %}
-
-        var template = "{% filter jst_escape %}{% include 'template.jst.html' %}{% endfilter %}";
+        var template = "{% filter jsescape %}{% include 'template.jst.html' %}{% endfilter %}";
 
         // javascript code
     
 
     I have a python script file monitoring when this is saved which passes it
     through the Django templating system to generate a pre-parsed script, which
-    sits in my media folder and actually gets served.
+    sits in my media folder and actually gets served. See django/
