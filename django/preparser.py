@@ -12,6 +12,24 @@ setup_environ(settings)
 from django.template import Template, Context
 from django.template.loader import *
 
+"""
+Requires some things in your settings.py file:
+
+
+# where processed java script files will be output to. folder structure
+# will be mirrored.
+PREPARSE_OUTPUT = os.path.join(MEDIA_ROOT, 'js', 'pre')
+
+# these will be processed with django's templating system and moved
+# to the PREPARSE_OUTPUT folder, mirroring folder structure.
+PREPARSE_DIR = os.path.join('templates', 'preparsed')
+
+# the dictionary that will be available to your preparsed code.
+PREPARSE_CONTEXT = {
+    'server_time': datetime.datetime.today().strftime("%B %d, %Y %H:%M:%S"),
+}
+
+"""
 
 def print_usage():
     """
