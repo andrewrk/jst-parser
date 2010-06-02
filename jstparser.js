@@ -42,7 +42,7 @@ String.prototype.startsWith = function startsWith(c) {
 };
 
 RegExp.quote = function(str) {
-    return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
+    return str.replace(/([.?*+\^$\[\]\\(){}\-])/g, "\\$1");
 };
 
 String.prototype.replaceAll = function replaceAll(a, b) {
@@ -300,7 +300,7 @@ var Jst = function () {
                                 "safeWrite");
                         } else if (stack.peek() == "+") {
                             // expression, don't escape html
-                            stack.pop()
+                            stack.pop();
                             fragment = parseExpression(stack);
                             appendExpressionFragment(writer, fragment,
                                 "write");
